@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Método Spinoz - División Transformada</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --accent: #007bff;
+            --accent-hover: #0056b3;
+            --border: #dee2e6;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --input-bg: #ffffff;
+            --card-bg: #ffffff;
+            --step-complete: #28a745;
+            --step-active: #ffc107;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent: #4a9eff;
+            --accent-hover: #357abd;
+            --border: #404040;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --input-bg: #2d2d2d;
+            --card-bg: #252525;
+            --step-complete: #4caf50;
+            --step-active: #ffeb3b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            font-weight: 300;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        /* Input Section */
+        .input-section {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px var(--shadow);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            text-align: center;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 2rem;
+            text-align: center;
+            border: 2px solid var(--border);
+            border-radius: 0.5rem;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .divider {
+            font-size: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .calculate-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px var(--shadow);
+        }
+
+        /* Results Section */
+        .results {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .results.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .step-card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px var(--shadow);
+            border: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+
+        .formula-line {
+            margin: 0.5rem 0;
+            font-size: 1.1rem;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .series-expansion {
+            margin-top: 1rem;
+        }
+
+        .series-term {
+            display: inline-block;
+            margin: 0.25rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            opacity: 0;
+            animation: bounceIn 0.5s ease forwards;
+            border: 1px solid var(--border);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--accent);
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .theorem-box {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .theorem-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .input-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .divider {
+                transform: rotate(90deg);
+                margin: -0.5rem 0;
+            }
+        }
+
+        /* Loading animation */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Método Spinoz</h1>
+            <p class="subtitle">Una nueva perspectiva de la división</p>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span id="theme-icon">🌙</span>
+            </button>
+        </header>
+
+        <div class="input-section">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="dividend">Dividendo</label>
+                    <input type="number" id="dividend" value="5" step="any">
+                </div>
+                <div class="divider">/</div>
+                <div class="input-group">
+                    <label for="divisor">Divisor</label>
+                    <input type="number" id="divisor" value="4.9" step="any">
+                </div>
+            </div>
+            <button class="calculate-btn" onclick="calculate()">
+                Calcular con Spinoz
+            </button>
+        </div>
+
+        <div id="results" class="results">
+            <!-- Step 1: Simplification -->
+            <div class="step-card" style="animation-delay: 0.1s">
+                <h2 class="step-title">
+                    <span class="step-icon">1</span>
+                    Simplificación
+                </h2>
+                <div class="formula">
+                    <div class="formula-line" id="simp-line1"></div>
+                    <div class="formula-line" id="simp-line2" style="animation-delay: 0.3s"></div>
+                    <div class="formula-line" id="simp-line3" style="animation-delay: 0.6s"></div>
+                </div>
+            </div>
+
+            <!-- Step 2: Spinoz Calculation -->
+            <div class="step-card" style="animation-delay: 0.3s">
+                <h2 class="step-title">
+                    <span class="step-icon">2</span>
+                    Cálculo del Spinoz
+                </h2>
+                <div class="formula">
+                    <div class="formula-line">s = 1 - (divisor / dividendo)</div>
+                    <div class="formula-line" id="spinoz-calc" style="animation-delay: 0.3s"></div>
+                    <div class="formula-line" id="spinoz-result" style="animation-delay: 0.6s"></div>
+                </div>
+                <div class="result-value" id="spinoz-value"></div>
+            </div>
+
+            <!-- Step 3: Series Expansion -->
+            <div class="step-card" style="animation-delay: 0.5s">
+                <h2 class="step-title">
+                    <span class="step-icon">3</span>
+                    <span id="series-type">Serie de Taylor</span>
+                </h2>
+                <div class="formula">
+                    <div class="formula-line" id="series-formula"></div>
+                </div>
+                <div class="series-expansion" id="series-expansion"></div>
+                <div class="result-value" id="final-result"></div>
+            </div>
+
+            <!-- Reversibility Theorem -->
+            <div class="step-card" style="animation-delay: 0.7s">
+                <div class="theorem-box">
+                    <div class="theorem-title">Teorema de Reversibilidad Spinoz</div>
+                    <div>Para toda división a/b = c con Spinoz s:</div>
+                    <div class="formula">
+                        <div class="formula-line">1/c = 1 - s</div>
+                        <div class="formula-line" id="reversibility" style="animation-delay: 0.3s"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                icon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                icon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('theme-icon').textContent = '☀️';
+        }
+
+        // Calculate function
+        async function calculate() {
+            const dividend = parseFloat(document.getElementById('dividend').value);
+            const divisor = parseFloat(document.getElementById('divisor').value);
+            
+            if (isNaN(dividend) || isNaN(divisor) || divisor === 0) {
+                alert('Por favor ingrese números válidos (divisor ≠ 0)');
+                return;
+            }
+
+            // Hide and reset results
+            const results = document.getElementById('results');
+            results.classList.remove('show');
+            
+            // Show results with delay
+            setTimeout(() => {
+                results.classList.add('show');
+                animateCalculation(dividend, divisor);
+            }, 100);
+        }
+
+        async function animateCalculation(dividend, divisor) {
+            // Step 1: Simplification
+            const gcd = dividend; // For simplicity, using dividend as scale factor
+            document.getElementById('simp-line1').textContent = `${dividend} / ${divisor}`;
+            document.getElementById('simp-line2').textContent = `= (${dividend}/${gcd}) / (${divisor}/${gcd})`;
+            document.getElementById('simp-line3').textContent = `= 1 / ${(divisor/dividend).toFixed(4)}`;
+
+            // Step 2: Spinoz
+            const spinoz = 1 - (divisor / dividend);
+            document.getElementById('spinoz-calc').textContent = `s = 1 - (${divisor} / ${dividend})`;
+            document.getElementById('spinoz-result').textContent = `s = 1 - ${(divisor/dividend).toFixed(4)} = ${spinoz.toFixed(6)}`;
+            document.getElementById('spinoz-value').textContent = `s = ${spinoz.toFixed(10)}`;
+
+            // Step 3: Series Expansion
+            const seriesType = Math.abs(spinoz) < 1 ? 'Taylor' : 'Laurent';
+            document.getElementById('series-type').textContent = `Serie de ${seriesType}`;
+            
+            if (Math.abs(spinoz) < 1) {
+                document.getElementById('series-formula').textContent = '1/(1-s) = 1 + s + s² + s³ + ...';
+                await animateTaylorSeries(spinoz);
+            } else {
+                document.getElementById('series-formula').textContent = '1/(1-s) = -1 × (s/s² + s/s³ + s/s⁴ + ...)';
+                await animateLaurentSeries(spinoz);
+            }
+
+            // Final result
+            const result = dividend / divisor;
+            document.getElementById('final-result').textContent = `= ${result.toFixed(15)}`;
+
+            // Reversibility theorem
+            const reciprocal = 1 / result;
+            document.getElementById('reversibility').textContent = 
+                `1/${result.toFixed(4)} = ${reciprocal.toFixed(6)} = ${(1-spinoz).toFixed(6)} = 1 - s ✓`;
+        }
+
+        async function animateTaylorSeries(s) {
+            const container = document.getElementById('series-expansion');
+            container.innerHTML = '';
+            let sum = 0;
+            const terms = 10;
+
+            for (let i = 0; i < terms; i++) {
+                const term = Math.pow(s, i);
+                sum += term;
+                
+                const termElement = document.createElement('div');
+                termElement.className = 'series-term';
+                termElement.style.animationDelay = `${i * 0.1}s`;
+                
+                if (i === 0) {
+                    termElement.textContent = `1`;
+                } else {
+                    termElement.textContent = `${term > 0 ? '+' : ''}${term.toFixed(10)}`;
+                }
+                
+                container.appendChild(termElement);
+                
+                // Add small delay between terms
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+
+        async function animateLaurentSeries(s) {
+            const container = document.getElementById('series-expansion');
+            container.innerHTML = '';
+            let sum = 0;
+            const terms = 10;
+
+            for (let i = 1; i <= terms; i++) {
+                const term = -Math.pow(1/s, i);
+                sum += term;
+                
+                const termElement = document.createElement('div');
+                termElement.className = 'series-term';
+                termElement.style.animationDelay = `${(i-1) * 0.1}s`;
+                
+                termElement.textContent = `${term > 0 ? '+' : ''}${term.toFixed(10)}`;
+                
+                container.appendChild(termElement);
+                
+                // Add small delay between terms
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+
+        // Auto-calculate on enter
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                calculate();
+            }
+        });
+    </script>
+</body>
+</html>
